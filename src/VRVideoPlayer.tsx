@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import Hls from "hls.js";
 
+type XRSupport = "unsupported" | "supported" | "active";
+
 interface Props {
   videoSrc: string;
   accentColor?: string;
   autoRotateSpeed?: number;
   fov?: number;
-  volume?: number; // 0–1, controls video audio (0 = muted)
+  volume?: number;
+  autoEnterXR?: boolean;  // trigger VR entry automatically
+  onXREntered?: () => void;
 }
 
 export default function VRVideoPlayer({
@@ -16,11 +20,38 @@ export default function VRVideoPlayer({
   autoRotateSpeed = 0,
   fov = 80,
   volume = 0,
+  autoEnterXR = false,
+  onXREntered,
 }: Props) {
-  const mountRef  = useRef<HTMLDivElement>(null);
-  const videoRef  = useRef<HTMLVideoElement | null>(null);
+  const mountRef     = useRef<HTMLDivElement>(null);
+  const videoRef     = useRef<HTMLVideoElement | null>(null);
+  const rendererRef  = useRef<THREE.WebGLRenderer | null>(null);
   const [status, setStatus]   = useState<"loading" | "ready" | "playing" | "error">("loading");
   const [missing, setMissing] = useState(false);
+  const [xrSupport, setXrSupport] = useState<XRSupport>("unsupported");
+
+  // Check WebXR support on mount
+  useEffect(() => {
+    if (!navigator.xr) return;
+    navigator.xr.isSessionSupported("immersive-vr")
+      .then((supported) => { if (supported) setXrSupport("supported"); })
+      .catch(() => {});
+  }, []);
+
+  const enterVR = async () => {
+    const renderer = rendererRef.current;
+    if (!renderer || !navigator.xr) return;
+    try {
+      const session = await navigator.xr.requestSession("immersive-vr", {
+        optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking"],
+      });
+      renderer.xr.setSession(session as XRSession);
+      setXrSupport("active");
+      session.addEventListener("end", () => setXrSupport("supported"));
+    } catch (e) {
+      console.warn("WebXR session failed:", e);
+    }
+  };
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -62,6 +93,8 @@ export default function VRVideoPlayer({
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
+    renderer.xr.enabled = true;
+    rendererRef.current = renderer;
     mount.appendChild(renderer.domElement);
 
     const scene  = new THREE.Scene();
@@ -157,24 +190,25 @@ export default function VRVideoPlayer({
     window.addEventListener("deviceorientation", onDeviceOrientation);
     window.addEventListener("resize", onResize);
 
-    // ── Render loop ──────────────────────────────────────────────────────────
-    let raf: number;
+    // ── Render loop (setAnimationLoop required for WebXR) ────────────────────
     const animate = () => {
-      raf = requestAnimationFrame(animate);
-      if (autoRotate && !orientationActive) lon += autoRotateSpeed;
-      applyLook();
+      if (!renderer.xr.isPresenting) {
+        if (autoRotate && !orientationActive) lon += autoRotateSpeed;
+        applyLook();
+      }
       if (video.readyState >= video.HAVE_CURRENT_DATA) texture.needsUpdate = true;
       renderer.render(scene, camera);
     };
-    animate();
+    renderer.setAnimationLoop(animate);
 
     // Autoplay when ready
     video.play().then(() => setStatus("playing")).catch(() => {});
 
     // ── Cleanup ──────────────────────────────────────────────────────────────
     return () => {
-      cancelAnimationFrame(raf);
+      renderer.setAnimationLoop(null);
       clearTimeout(resumeTimer);
+      rendererRef.current = null;
       video.pause();
       if (hls) { hls.destroy(); hls = null; }
       video.src = "";
@@ -193,6 +227,18 @@ export default function VRVideoPlayer({
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
   }, [videoSrc, autoRotateSpeed, fov]);
+
+  // Auto-enter XR when requested (e.g. user clicked global VR button from another screen)
+  useEffect(() => {
+    if (!autoEnterXR) return;
+    // Wait briefly for video to start, then enter VR
+    const t = setTimeout(async () => {
+      await enterVR();
+      onXREntered?.();
+    }, 800);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoEnterXR]);
 
   // Update video volume whenever prop changes — no need to rebuild the scene
   useEffect(() => {
@@ -267,6 +313,40 @@ export default function VRVideoPlayer({
             Format disokong: MP4 (H.264), HLS (.m3u8) · Resolusi: 4K atau 2K
           </p>
         </div>
+      )}
+
+      {/* WebXR Enter VR button — shown only on Meta Quest / WebXR-capable browsers */}
+      {xrSupport !== "unsupported" && (
+        <button
+          data-vr-btn
+          onClick={enterVR}
+          className="absolute z-30 flex items-center gap-2 px-4 py-2.5 rounded-full transition-all hover:scale-105 active:scale-95"
+          style={{
+            bottom: 28,
+            right: 24,
+            background: xrSupport === "active"
+              ? "rgba(16,185,129,0.25)"
+              : "rgba(5,13,26,0.75)",
+            border: `1.5px solid ${xrSupport === "active" ? "#10b981" : "rgba(255,255,255,0.2)"}`,
+            backdropFilter: "blur(12px)",
+            boxShadow: xrSupport === "active" ? "0 0 20px rgba(16,185,129,0.4)" : "none",
+          }}
+        >
+          {/* VR headset icon */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke={xrSupport === "active" ? "#10b981" : "rgba(255,255,255,0.8)"}
+            strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 8h20v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
+            <circle cx="8.5" cy="13" r="2"/>
+            <circle cx="15.5" cy="13" r="2"/>
+            <path d="M10.5 13h3"/>
+            <path d="M7 8V6a5 5 0 0 1 10 0v2"/>
+          </svg>
+          <span className="text-xs font-semibold"
+            style={{ color: xrSupport === "active" ? "#10b981" : "rgba(255,255,255,0.85)" }}>
+            {xrSupport === "active" ? "Dalam VR Mode" : "Masuk VR"}
+          </span>
+        </button>
       )}
     </div>
   );

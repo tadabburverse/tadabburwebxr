@@ -58,8 +58,8 @@ const QURAN_TRACKS: AudioTrack[] = [
   { id: "q1", title: "Surah Ar-Rahman", subtitle: "Irama Ketenangan", duration: "--:--", src: "https://stream.mux.com/MQeRkpVvdAF02io6XfgLBk4q02b3fgUM5hx1fpyH5NOUg.m3u8" },
   { id: "q2", title: "Surah Ad-Duha & Asy-Syarh", subtitle: "Pelega Keresahan", duration: "--:--", src: "https://stream.mux.com/lbZ00vfmRmrUtrFF63Earun0001vbULQApopxjbCuhqqVE.m3u8" },
   { id: "q3", title: "Surah Al-Mulk", subtitle: "Keagungan Ciptaan", duration: "--:--", src: "https://stream.mux.com/h2S3LIESAlM01Ou3lK3nKNT6Ov01qF01uVcop7I021ZFMu8.m3u8" },
-  { id: "q4", title: "Surah Al-Kahf", subtitle: "Cahaya Hati", duration: "--:--", src: "/surah-4.mp3" },
-  { id: "q5", title: "Surah Maryam", subtitle: "Penyejuk Jiwa", duration: "--:--", src: "/surah-5.mp3" },
+  { id: "q4", title: "Surah Al-Kahf", subtitle: "Cahaya Hati", duration: "--:--", src: "https://stream.mux.com/hfgVvhxinEAat01MShaEqkYBgMSj1FebIdQ3jofL8VYk.m3u8" },
+  { id: "q5", title: "Surah Maryam", subtitle: "Penyejuk Jiwa", duration: "--:--", src: "https://stream.mux.com/E1P3XaWh1SEEBafidpw01aOZuORw4028uLUwL4e8j02Dr00.m3u8" },
 ];
 
 const DHIKR_TRACKS: AudioTrack[] = [
@@ -1038,19 +1038,32 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
-    const audio = new Audio("/guided-intro.mp3");
-    audio.preload = "auto";
+    const GUIDED_SRC = "https://stream.mux.com/7Yv23ZkHMmneAXro5z8U00OHTLJhvA02zmsYh3fgSBpeY.m3u8";
+    const audio = new Audio();
     audioRef.current = audio;
 
     audio.addEventListener("loadedmetadata", () => setDuration(audio.duration));
     audio.addEventListener("timeupdate", () => setElapsed(audio.currentTime));
     audio.addEventListener("ended", () => { setReady(true); setPlaying(false); });
-    audio.addEventListener("error", () => setMissing(true));
+
+    let hls: import("hls.js").default | null = null;
+    if (GUIDED_SRC.includes(".m3u8") && Hls.isSupported()) {
+      hls = new Hls({ enableWorker: true });
+      hls.loadSource(GUIDED_SRC);
+      hls.attachMedia(audio);
+      hls.on(Hls.Events.ERROR, (_e: unknown, data: { fatal: boolean }) => {
+        if (data.fatal) setMissing(true);
+      });
+    } else {
+      audio.src = GUIDED_SRC;
+      audio.addEventListener("error", () => setMissing(true));
+    }
 
     audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
 
     return () => {
       audio.pause();
+      if (hls) hls.destroy();
       audio.src = "";
     };
   }, []);
@@ -1094,7 +1107,7 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
         {missing ? (
           <div className="flex flex-col items-center gap-2 py-2">
             <p className="text-red-400 text-xs text-center">Fail audio tidak ditemui —</p>
-            <code className="text-emerald-400 text-xs bg-emerald-400/10 px-2 py-0.5 rounded">public/guided-intro.mp3</code>
+            <code className="text-emerald-400 text-xs bg-emerald-400/10 px-2 py-0.5 rounded">stream.mux.com · guided-intro</code>
             <button
               onClick={() => { setMissing(false); setReady(true); }}
               className="text-slate-400 text-xs underline mt-1"
@@ -1194,6 +1207,8 @@ function SessionScreen({
   zikrVol,
   setZikrVol,
   worldKey,
+  autoEnterXR = false,
+  onXREntered,
 }: {
   onExit: () => void;
   onOpenLibrary: () => void;
@@ -1206,6 +1221,8 @@ function SessionScreen({
   zikrVol: number;
   setZikrVol: (v: number) => void;
   worldKey: WorldKey;
+  autoEnterXR?: boolean;
+  onXREntered?: () => void;
 }) {
   const [breathPhase, setBreathPhase] = useState<"in" | "out">("in");
   const [trackProgress, setTrackProgress] = useState(42);
@@ -1234,6 +1251,8 @@ function SessionScreen({
         autoRotateSpeed={0}
         fov={80}
         volume={sessionWorld.videoUrl.includes(".m3u8") ? natureVol / 100 : 0}
+        autoEnterXR={autoEnterXR}
+        onXREntered={onXREntered}
       />
       {/* HUD overlay gradients */}
       <div className="absolute inset-0 pointer-events-none" style={{
@@ -2031,7 +2050,7 @@ const VR_WORLDS = {
       { icon: "🌬️", text: "Rasai angin laut menyentuh wajah", en: "Feel the ocean breeze on your face" },
     ],
     defaultTrack: QURAN_TRACKS[0],
-    natureSrc: "/sound-pantai.mp3",
+    natureSrc: "https://stream.mux.com/XcTtbb02JqwftDxNDzqNwgsdNrVhHiu3o68h02ytF3kic.m3u8",
     overlayFrom: "rgba(180,90,10,0.55)",
     overlayTo: "rgba(5,13,26,0.75)",
   },
@@ -2058,7 +2077,7 @@ const VR_WORLDS = {
       { icon: "🌫️", text: "Rasai percikan kabus air yang segar", en: "Feel the cool mist on your skin" },
     ],
     defaultTrack: DHIKR_TRACKS[2],
-    natureSrc: "/sound-airterjun.mp3",
+    natureSrc: "https://stream.mux.com/G01mfPGwoBhfNaR5Kaa98Ri01ZB2Qwh01202wrZX1QWiSkI.m3u8",
     overlayFrom: "rgba(10,40,100,0.5)",
     overlayTo: "rgba(5,13,26,0.78)",
   },
@@ -2352,46 +2371,63 @@ function LocationPickerScreen({
   const [imageReady, setImageReady] = useState<Record<WorldKey, boolean>>({ pantai: false, airterjun: false });
 
   const hoverAudioRef = useRef<HTMLAudioElement | null>(null);
+  const hoverHlsRef   = useRef<Hls | null>(null);
 
   const playHoverSound = (key: WorldKey) => {
-    if (hoverAudioRef.current) {
-      hoverAudioRef.current.pause();
-      hoverAudioRef.current.src = "";
-    }
-    const src = key === "pantai" ? "/sound-pantai.mp3" : "/sound-airterjun.mp3";
-    const audio = new Audio(src);
-    audio.loop = true;
-    audio.volume = 0;
+    // Destroy previous hover audio
+    destroyAudio(hoverAudioRef.current, hoverHlsRef.current);
+    hoverAudioRef.current = null;
+    hoverHlsRef.current = null;
+
+    const src = key === "pantai"
+      ? "https://stream.mux.com/XcTtbb02JqwftDxNDzqNwgsdNrVhHiu3o68h02ytF3kic.m3u8"
+      : "https://stream.mux.com/G01mfPGwoBhfNaR5Kaa98Ri01ZB2Qwh01202wrZX1QWiSkI.m3u8";
+
+    const { audio, hls } = createAudio(src, 0);
     hoverAudioRef.current = audio;
-    audio.play().catch(() => {});
-    // Fade in
-    let vol = 0;
-    const fadeIn = setInterval(() => {
-      vol = Math.min(vol + 0.05, 0.5);
-      if (hoverAudioRef.current === audio) audio.volume = vol;
-      if (vol >= 0.5) clearInterval(fadeIn);
-    }, 60);
+    hoverHlsRef.current = hls;
+
+    // Wait for HLS to attach before playing, then fade in
+    const startPlay = () => {
+      audio.play().catch(() => {});
+      let vol = 0;
+      const fadeIn = setInterval(() => {
+        vol = Math.min(vol + 0.05, 0.5);
+        if (hoverAudioRef.current === audio) audio.volume = vol;
+        if (vol >= 0.5) clearInterval(fadeIn);
+      }, 60);
+    };
+
+    if (hls) {
+      hls.on(Hls.Events.MANIFEST_PARSED, startPlay);
+    } else {
+      startPlay();
+    }
   };
 
   const stopHoverSound = () => {
     const audio = hoverAudioRef.current;
+    const hls   = hoverHlsRef.current;
     if (!audio) return;
-    // Fade out then stop
+    // Fade out then destroy
     const fadeOut = setInterval(() => {
       audio.volume = Math.max(audio.volume - 0.06, 0);
       if (audio.volume <= 0) {
         clearInterval(fadeOut);
-        audio.pause();
-        audio.src = "";
-        if (hoverAudioRef.current === audio) hoverAudioRef.current = null;
+        destroyAudio(audio, hls);
+        if (hoverAudioRef.current === audio) { hoverAudioRef.current = null; hoverHlsRef.current = null; }
       }
     }, 50);
   };
 
+  const stopHoverImmediate = () => {
+    destroyAudio(hoverAudioRef.current, hoverHlsRef.current);
+    hoverAudioRef.current = null;
+    hoverHlsRef.current = null;
+  };
+
   useEffect(() => {
-    return () => {
-      if (hoverAudioRef.current) { hoverAudioRef.current.pause(); hoverAudioRef.current.src = ""; }
-    };
+    return () => stopHoverImmediate();
   }, []);
 
   const worlds: { key: WorldKey; emoji: string; score: string }[] = [
@@ -2447,7 +2483,7 @@ function LocationPickerScreen({
             return (
               <button
                 key={key}
-                onClick={() => onSelect(key)}
+                onClick={() => { stopHoverImmediate(); onSelect(key); }}
                 onMouseEnter={() => { setHovered(key); playHoverSound(key); }}
                 onMouseLeave={() => { setHovered(null); stopHoverSound(); }}
                 className="relative rounded-2xl overflow-hidden text-left flex flex-col transition-all duration-300"
@@ -2645,7 +2681,40 @@ export default function App() {
   useEffect(() => {
     if (natureAudioRef.current) natureAudioRef.current.volume = natureVol / 100;
   }, [natureVol]);
+
+  // Mute all background audio on guided-intro — only guided-intro audio should play
+  useEffect(() => {
+    if (screen === "guided-intro") {
+      sessionAudioRef.current?.pause();
+      natureAudioRef.current?.pause();
+    }
+  }, [screen]);
+
   const goToMenu = () => { setScreen("main-menu"); setShowExitModal(false); setShowLibrary(false); };
+
+  // ── Global WebXR state ────────────────────────────────────────────────────
+  const [xrAvailable, setXrAvailable] = useState(false);
+  const [autoEnterXR, setAutoEnterXR] = useState(false);
+
+  useEffect(() => {
+    if (!navigator.xr) return;
+    navigator.xr.isSessionSupported("immersive-vr")
+      .then((ok) => { if (ok) setXrAvailable(true); })
+      .catch(() => {});
+  }, []);
+
+  // When user requests VR from a non-session screen, navigate to session first
+  const handleGlobalVR = () => {
+    if (screen === "session") {
+      // VRVideoPlayer handles its own enter-VR button; scroll-click it
+      const btn = document.querySelector("[data-vr-btn]") as HTMLButtonElement | null;
+      btn?.click();
+      return;
+    }
+    setAutoEnterXR(true);
+    setIsPlaying(true);
+    setScreen("session");
+  };
 
   return (
     <div className="relative w-full min-h-screen overflow-hidden">
@@ -2732,6 +2801,8 @@ export default function App() {
             zikrVol={zikrVol}
             setZikrVol={setZikrVol}
             worldKey={activeWorldKey}
+            autoEnterXR={autoEnterXR}
+            onXREntered={() => setAutoEnterXR(false)}
           />
           {showLibrary && (
             <AudioLibraryPanel
@@ -2758,6 +2829,33 @@ export default function App() {
 
       {screen === "lobby" && (
         <LobbyScreen onRestart={goToMenu} />
+      )}
+
+      {/* ── Global floating VR button — visible on all screens when WebXR available ── */}
+      {xrAvailable && screen !== "session" && (
+        <button
+          onClick={handleGlobalVR}
+          title="Masuk VR Mode"
+          className="fixed z-[999] flex items-center gap-2 px-4 py-2.5 rounded-full transition-all hover:scale-105 active:scale-95"
+          style={{
+            bottom: 24,
+            right: 24,
+            background: "rgba(5,13,26,0.85)",
+            border: "1.5px solid rgba(16,185,129,0.5)",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 0 24px rgba(16,185,129,0.25), 0 4px 16px rgba(0,0,0,0.5)",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="#10b981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 8h20v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
+            <circle cx="8.5" cy="13" r="2"/>
+            <circle cx="15.5" cy="13" r="2"/>
+            <path d="M10.5 13h3"/>
+            <path d="M7 8V6a5 5 0 0 1 10 0v2"/>
+          </svg>
+          <span className="text-xs font-semibold text-emerald-400">Masuk VR</span>
+        </button>
       )}
     </div>
   );
