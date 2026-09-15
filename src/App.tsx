@@ -278,7 +278,7 @@ function SplashUIS({ onNext }: { onNext: () => void }) {
             width: 148, height: 148,
           }}>
             <img
-              src="/logo-uis.png"
+              src="https://res.cloudinary.com/hwiwb3ea/image/upload/v1789437235/logo-uis.png.png"
               alt="Logo Universiti Islam Selangor"
               width={108}
               height={108}
@@ -367,7 +367,7 @@ function SplashApp({ onNext }: { onNext: () => void }) {
             transition: "transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}>
             <img
-              src="/logo-tadabburverse.png"
+              src="https://res.cloudinary.com/hwiwb3ea/image/upload/v1789437235/logo-tadabburverse.png.png"
               alt="Logo TadabburVerse"
               width={88}
               height={88}
@@ -750,7 +750,14 @@ function MainMenuScreen({ onMula, onBantuan, onTentang, onKeluar }: {
           borderRight: "1px solid rgba(16,185,129,0.12)",
           backdropFilter: "blur(20px)",
         }}>
-          <TadabburMark size={48}/>
+          <img
+            src="https://res.cloudinary.com/hwiwb3ea/image/upload/v1789437235/logo-tadabburverse.png.png"
+            alt="TadabburVerse"
+            width={48}
+            height={48}
+            style={{ objectFit: "contain" }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
           <span className="font-display text-base text-white tracking-[0.18em] mt-2 uppercase">TadabburVerse</span>
         </div>
 
@@ -1148,6 +1155,30 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
           </div>
         )}
         {ready && !missing && <p className="text-emerald-400 text-xs text-center">✓ Audio selesai — anda boleh teruskan</p>}
+
+        {/* Skip voiceover button — only shown while audio hasn't completed */}
+        {!ready && !missing && (
+          <button
+            onClick={() => {
+              audioRef.current?.pause();
+              setPlaying(false);
+              setReady(true);
+            }}
+            className="w-full mt-3 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium transition-all hover:scale-[1.02]"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.45)",
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <polygon points="5,4 15,12 5,20"/><line x1="19" y1="5" x2="19" y2="19"/>
+            </svg>
+            Langkau Voiceover
+            <span className="opacity-60">· Skip Voiceover</span>
+          </button>
+        )}
+
       </div>
 
       {/* Instruction Cues */}
@@ -1243,7 +1274,7 @@ function SessionScreen({
   const sessionWorld = VR_WORLDS[worldKey];
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ background: "#050d1a" }}>
+    <div id="vr-session-root" className="relative min-h-screen overflow-hidden" style={{ background: "#050d1a" }}>
       {/* ── Live 360° VR video background ── */}
       <VRVideoPlayer
         videoSrc={sessionWorld.videoUrl}
@@ -1262,10 +1293,13 @@ function SessionScreen({
         background: "radial-gradient(ellipse at center, transparent 35%, rgba(5,13,26,0.45) 100%)",
       }}/>
 
+      {/* ── VR-safe HUD wrapper — stays visible in WebXR DOM Overlay ── */}
+      <div className="absolute inset-0 z-[200] pointer-events-none" style={{ isolation: "isolate" }}>
+
       {/* Exit pill button */}
       <button
         onClick={onExit}
-        className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full glass transition-all hover:scale-105 animate-fade-in"
+        className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-full glass transition-all hover:scale-105 animate-fade-in pointer-events-auto"
         style={{ border: "1px solid rgba(255,255,255,0.15)" }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2">
@@ -1275,7 +1309,7 @@ function SessionScreen({
       </button>
 
       {/* Breathing Visualizer — top-anchored, compact, non-blocking */}
-      <div className="absolute top-0 left-0 right-0 z-40 flex justify-center pointer-events-none animate-fade-in" style={{ paddingTop: 80 }}>
+      <div className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none animate-fade-in" style={{ paddingTop: 80 }}>
         <div className="flex items-center gap-4 px-5 py-3 rounded-2xl"
           style={{
             background: "rgba(5,13,26,0.55)",
@@ -1332,7 +1366,7 @@ function SessionScreen({
       </div>
 
       {/* Floating Curved Media Hub */}
-      <div className="absolute bottom-0 left-0 right-0 z-40 animate-slide-up px-4 pb-4" style={{ animationDelay: "0.2s" }}>
+      <div className="absolute bottom-0 left-0 right-0 animate-slide-up px-4 pb-4 pointer-events-auto" style={{ animationDelay: "0.2s" }}>
         <div className="max-w-2xl mx-auto glass-dark rounded-3xl p-5"
           style={{ border: "1px solid rgba(16,185,129,0.2)", boxShadow: "0 -8px 40px rgba(0,0,0,0.6)" }}>
 
@@ -1407,6 +1441,9 @@ function SessionScreen({
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Close HUD wrapper */}
       </div>
     </div>
   );
@@ -2034,7 +2071,7 @@ const VR_WORLDS = {
     taglineEn: "Let the waves wash your worries away",
     image: "https://images.unsplash.com/photo-1679996592747-a11a885b3ecd?w=1600&h=900&fit=crop&auto=format",
     panoramaUrl: "https://images.unsplash.com/photo-1597868438162-3a95279928a3?w=4096&h=2048&fit=crop&auto=format",
-    videoUrl: "https://stream.mux.com/3KfZfDL9KpVf01X00iCVd7Han6Et8zvvCmNxU02pJIudw8.m3u8",
+    videoUrl: "https://stream.mux.com/EL0000piTM02ZU5uJEAdROlYqjyUIPxKST6QTmtNlGEUlk.m3u8",
     imageAlt: "Wide golden ocean sunset over calm tropical waters",
     accentColor: "#d4a843",
     accentGlow: "rgba(212,168,67,0.35)",
@@ -2061,7 +2098,7 @@ const VR_WORLDS = {
     taglineEn: "Let flowing water cleanse the mind",
     image: "https://images.unsplash.com/photo-1544177817-454e1238e05f?w=1600&h=900&fit=crop&auto=format",
     panoramaUrl: "https://images.unsplash.com/photo-1544177817-454e1238e05f?w=4096&h=2048&fit=crop&auto=format",
-    videoUrl: "https://stream.mux.com/BlaGFyZdQwwQSrf022tUREyWoXXsZdryfWKEWBSD71b4.m3u8",
+    videoUrl: "https://stream.mux.com/WAwmAeoRAx93ClyPSskl5H902AEqV2DGPvZ2x8fJj00QI.m3u8",
     imageAlt: "Cascading waterfalls in lush green tropical ravine",
     accentColor: "#60a5fa",
     accentGlow: "rgba(96,165,250,0.35)",

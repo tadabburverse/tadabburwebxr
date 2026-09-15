@@ -42,9 +42,13 @@ export default function VRVideoPlayer({
     const renderer = rendererRef.current;
     if (!renderer || !navigator.xr) return;
     try {
-      const session = await navigator.xr.requestSession("immersive-vr", {
-        optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking"],
-      });
+      // DOM Overlay keeps all HTML panels/buttons visible in VR as an overlay
+      const overlayRoot = document.getElementById("vr-session-root") ?? document.body;
+      const sessionInit: XRSessionInit & { domOverlay?: { root: Element } } = {
+        optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking", "dom-overlay"],
+        domOverlay: { root: overlayRoot },
+      };
+      const session = await navigator.xr.requestSession("immersive-vr", sessionInit);
       renderer.xr.setSession(session as XRSession);
       setXrSupport("active");
       session.addEventListener("end", () => setXrSupport("supported"));
