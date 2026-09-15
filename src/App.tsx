@@ -818,13 +818,17 @@ function MainMenuScreen({ onMula, onBantuan, onTentang, onKeluar }: {
                 <button
                   key={btn.id}
                   onClick={btn.action}
+                  onPointerEnter={() => setHovered(btn.id)}
+                  onPointerLeave={() => setHovered(null)}
                   onMouseEnter={() => setHovered(btn.id)}
                   onMouseLeave={() => setHovered(null)}
+                  tabIndex={0}
                   className="relative w-full flex items-center gap-4 py-4 px-5 rounded-xl text-left overflow-hidden"
                   style={{
                     ...styles,
                     transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                     transform: isHovered ? "translateY(-1px) scale(1.01)" : "none",
+                    WebkitTapHighlightColor: "transparent",
                   }}
                 >
                   {/* Shimmer on primary hover */}

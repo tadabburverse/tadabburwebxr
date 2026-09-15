@@ -33,6 +33,17 @@ body {
   background-color: #050d1a;
   color: #e8f0f7;
   overflow: hidden;
+  /* Meta Quest browser: ensure pointer events reach buttons */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure all interactive elements are reachable on Meta Quest controller ray */
+button, a, [role="button"] {
+  touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 @keyframes breathe-in {
