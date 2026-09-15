@@ -1257,6 +1257,15 @@ function SessionScreen({
 }) {
   const [breathPhase, setBreathPhase] = useState<"in" | "out">("in");
   const [trackProgress, setTrackProgress] = useState(42);
+  const [xrReady, setXrReady] = useState(false);
+  const enterVRRef = useRef<(() => Promise<void>) | null>(null);
+
+  useEffect(() => {
+    if (!navigator.xr) return;
+    navigator.xr.isSessionSupported("immersive-vr")
+      .then((ok) => { if (ok) setXrReady(true); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -1284,6 +1293,7 @@ function SessionScreen({
         volume={sessionWorld.videoUrl.includes(".m3u8") ? natureVol / 100 : 0}
         autoEnterXR={autoEnterXR}
         onXREntered={onXREntered}
+        enterVRRef={enterVRRef}
       />
       {/* HUD overlay gradients */}
       <div className="absolute inset-0 pointer-events-none" style={{
@@ -1440,6 +1450,31 @@ function SessionScreen({
               ← Back to Menu
             </button>
           </div>
+
+          {/* Enter VR button — shown only when WebXR available */}
+          {xrReady && (
+            <button
+              onClick={() => enterVRRef.current?.()}
+              className="w-full mt-3 flex items-center justify-center gap-2.5 py-3 rounded-2xl font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.08))",
+                border: "1.5px solid rgba(16,185,129,0.4)",
+                color: "#10b981",
+                boxShadow: "0 0 20px rgba(16,185,129,0.15)",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 8h20v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
+                <circle cx="8.5" cy="13" r="2"/>
+                <circle cx="15.5" cy="13" r="2"/>
+                <path d="M10.5 13h3"/>
+                <path d="M7 8V6a5 5 0 0 1 10 0v2"/>
+              </svg>
+              Masuk VR Mode
+              <span className="opacity-60 text-xs font-normal">· Enter Immersive VR</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1471,7 +1506,7 @@ function AudioLibraryPanel({
   };
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col" style={{ background: "rgba(5,13,26,0.92)", backdropFilter: "blur(20px)" }}>
+    <div className="absolute inset-0 z-[300] flex flex-col" style={{ background: "rgba(5,13,26,0.92)", backdropFilter: "blur(20px)" }}>
       {/* Header */}
       <div className="flex items-center justify-between px-6 pt-8 pb-4">
         <div>
@@ -1554,7 +1589,7 @@ function AudioLibraryPanel({
 // ─── Exit Modal ────────────────────────────────────────────────────────────────
 function ExitModal({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center px-6"
+    <div className="absolute inset-0 z-[300] flex items-center justify-center px-6"
       style={{ background: "rgba(5,13,26,0.75)", backdropFilter: "blur(12px)" }}>
       <div className="glass-dark rounded-3xl p-8 w-full max-w-sm animate-slide-up text-center"
         style={{ border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>

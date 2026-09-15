@@ -10,8 +10,9 @@ interface Props {
   autoRotateSpeed?: number;
   fov?: number;
   volume?: number;
-  autoEnterXR?: boolean;  // trigger VR entry automatically
+  autoEnterXR?: boolean;
   onXREntered?: () => void;
+  enterVRRef?: React.MutableRefObject<(() => Promise<void>) | null>;
 }
 
 export default function VRVideoPlayer({
@@ -22,6 +23,7 @@ export default function VRVideoPlayer({
   volume = 0,
   autoEnterXR = false,
   onXREntered,
+  enterVRRef,
 }: Props) {
   const mountRef     = useRef<HTMLDivElement>(null);
   const videoRef     = useRef<HTMLVideoElement | null>(null);
@@ -37,6 +39,13 @@ export default function VRVideoPlayer({
       .then((supported) => { if (supported) setXrSupport("supported"); })
       .catch(() => {});
   }, []);
+
+  // Expose enterVR to parent via ref
+  useEffect(() => {
+    if (enterVRRef) enterVRRef.current = enterVR;
+    return () => { if (enterVRRef) enterVRRef.current = null; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enterVRRef]);
 
   const enterVR = async () => {
     const renderer = rendererRef.current;
@@ -319,38 +328,13 @@ export default function VRVideoPlayer({
         </div>
       )}
 
-      {/* WebXR Enter VR button — shown only on Meta Quest / WebXR-capable browsers */}
-      {xrSupport !== "unsupported" && (
-        <button
-          data-vr-btn
-          onClick={enterVR}
-          className="absolute z-30 flex items-center gap-2 px-4 py-2.5 rounded-full transition-all hover:scale-105 active:scale-95"
-          style={{
-            bottom: 28,
-            right: 24,
-            background: xrSupport === "active"
-              ? "rgba(16,185,129,0.25)"
-              : "rgba(5,13,26,0.75)",
-            border: `1.5px solid ${xrSupport === "active" ? "#10b981" : "rgba(255,255,255,0.2)"}`,
-            backdropFilter: "blur(12px)",
-            boxShadow: xrSupport === "active" ? "0 0 20px rgba(16,185,129,0.4)" : "none",
-          }}
-        >
-          {/* VR headset icon */}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke={xrSupport === "active" ? "#10b981" : "rgba(255,255,255,0.8)"}
-            strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 8h20v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/>
-            <circle cx="8.5" cy="13" r="2"/>
-            <circle cx="15.5" cy="13" r="2"/>
-            <path d="M10.5 13h3"/>
-            <path d="M7 8V6a5 5 0 0 1 10 0v2"/>
-          </svg>
-          <span className="text-xs font-semibold"
-            style={{ color: xrSupport === "active" ? "#10b981" : "rgba(255,255,255,0.85)" }}>
-            {xrSupport === "active" ? "Dalam VR Mode" : "Masuk VR"}
-          </span>
-        </button>
+      {/* VR active indicator — subtle badge shown when XR session is live */}
+      {xrSupport === "active" && (
+        <div className="absolute z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full pointer-events-none"
+          style={{ top: 16, right: 16, background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.5)" }}>
+          <div className="w-2 h-2 rounded-full bg-emerald-400" style={{ animation: "pulse-glow 1.5s ease-in-out infinite" }}/>
+          <span className="text-emerald-400 text-xs font-semibold">VR Active</span>
+        </div>
       )}
     </div>
   );
