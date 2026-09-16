@@ -1294,7 +1294,7 @@ function SessionScreen({
         accentColor={sessionWorld.accentColor}
         autoRotateSpeed={0}
         fov={80}
-        volume={sessionWorld.videoUrl.includes(".m3u8") ? natureVol / 100 : 0}
+        volume={0}
         autoEnterXR={autoEnterXR}
         onXREntered={onXREntered}
         enterVRRef={enterVRRef}
@@ -2729,18 +2729,23 @@ export default function App() {
   const recommendedKey: WorldKey = totalScore <= 10 ? "pantai" : "airterjun";
   const activeWorldKey: WorldKey = manualWorldKey ?? recommendedKey;
 
-  // Swap nature sound when world changes — HLS worlds use video audio via VRVideoPlayer
+  // Swap nature sound when world changes — always use dedicated natureSrc audio stream
   useEffect(() => {
     destroyAudio(natureAudioRef.current, natureHlsRef.current);
     natureAudioRef.current = null;
     natureHlsRef.current = null;
 
     const world = VR_WORLDS[activeWorldKey];
-    if (world.videoUrl.includes(".m3u8")) return;
     const { audio, hls } = createAudio(world.natureSrc, natureVol / 100);
     natureAudioRef.current = audio;
     natureHlsRef.current = hls;
-    if (screen === "session") audio.play().catch(() => {});
+    if (screen === "session") {
+      if (hls) {
+        hls.on(Hls.Events.MANIFEST_PARSED, () => audio.play().catch(() => {}));
+      } else {
+        audio.play().catch(() => {});
+      }
+    }
     return () => { destroyAudio(audio, hls); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeWorldKey]);
@@ -2748,9 +2753,17 @@ export default function App() {
   // Play/pause nature audio with screen transitions
   useEffect(() => {
     const audio = natureAudioRef.current;
+    const hls = natureHlsRef.current;
     if (!audio) return;
-    if (screen === "session") audio.play().catch(() => {});
-    else audio.pause();
+    if (screen === "session") {
+      if (hls && audio.readyState === 0) {
+        hls.on(Hls.Events.MANIFEST_PARSED, () => audio.play().catch(() => {}));
+      } else {
+        audio.play().catch(() => {});
+      }
+    } else {
+      audio.pause();
+    }
   }, [screen]);
 
   // Nature volume
