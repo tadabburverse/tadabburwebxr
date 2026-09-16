@@ -299,7 +299,7 @@ function SplashUIS({ onNext }: { onNext: () => void }) {
           </p>
           <div className="h-px w-40 mx-auto mb-3" style={{ background: "linear-gradient(90deg, transparent, rgba(212,168,67,0.5), transparent)" }}/>
           <p className="text-slate-400 text-sm tracking-wider" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Inovasi Kesejahteraan Holistik
+            Di Sini Lahirnya; Dai, Ulama dan Umarak
           </p>
         </div>
 
@@ -396,10 +396,7 @@ function SplashApp({ onNext }: { onNext: () => void }) {
             background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.6), rgba(212,168,67,0.6), transparent)"
           }}/>
           <p className="text-slate-300/80 text-sm tracking-[0.12em]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            Rehatkan Minda, Hayati Ciptaan-Nya
-          </p>
-          <p className="text-slate-500 text-xs mt-1 tracking-widest">
-            REST THE MIND · CONTEMPLATE HIS CREATION
+            Relaksasi · Refleksi · Ruhi
           </p>
         </div>
 
@@ -668,7 +665,7 @@ function MainMenuScreen({ onMula, onBantuan, onTentang, onKeluar }: {
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const CANOPY_URL = "https://images.unsplash.com/photo-1748935538554-572d3b82ba14?w=1600&h=900&fit=crop&auto=format";
+  const BG_URL = "https://res.cloudinary.com/hwiwb3ea/image/upload/v1789533353/maininterface-lobiutama.png";
 
   const buttons = [
     {
@@ -722,54 +719,28 @@ function MainMenuScreen({ onMula, onBantuan, onTentang, onKeluar }: {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
-      {/* Ambient nature canopy background */}
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-end">
+      {/* Full-bleed branded background */}
       <img
-        src={CANOPY_URL}
-        alt="Lush tropical forest canopy"
+        src={BG_URL}
+        alt="TadabburVerse Lobi Utama"
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ filter: "brightness(0.18) saturate(0.7)", transform: "scale(1.05)" }}
+        style={{ objectPosition: "center center" }}
       />
-      {/* Dark vignette overlay */}
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse at center, rgba(5,13,26,0.55) 0%, rgba(5,13,26,0.88) 100%)",
-      }}/>
-      {/* Emerald bloom center */}
+      {/* Subtle right-side vignette so panel reads clearly */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: "radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.07) 0%, transparent 60%)",
+        background: "linear-gradient(90deg, transparent 30%, rgba(5,13,26,0.55) 70%, rgba(5,13,26,0.75) 100%)",
       }}/>
-      <StarField />
 
-      {/* Floating spatial panel */}
-      <div className="relative z-10 w-full max-w-sm mx-4 animate-fade-in">
-        {/* Top header — centred logo + title */}
-        <div className="flex flex-col items-center justify-center px-5 py-5 rounded-t-2xl" style={{
-          background: "rgba(5,13,26,0.7)",
-          borderTop: "1px solid rgba(16,185,129,0.2)",
-          borderLeft: "1px solid rgba(16,185,129,0.12)",
-          borderRight: "1px solid rgba(16,185,129,0.12)",
-          backdropFilter: "blur(20px)",
-        }}>
-          <img
-            src="https://res.cloudinary.com/hwiwb3ea/image/upload/v1789437235/logo-tadabburverse.png.png"
-            alt="TadabburVerse"
-            width={48}
-            height={48}
-            style={{ objectFit: "contain" }}
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-          />
-          <span className="font-display text-base text-white tracking-[0.18em] mt-2 uppercase">TadabburVerse</span>
-        </div>
-
+      {/* Floating spatial panel — shifted right */}
+      <div className="relative z-10 w-full max-w-sm mr-10 lg:mr-20 animate-fade-in">
         {/* Main panel body */}
         <div style={{
           background: "rgba(10,20,38,0.82)",
           backdropFilter: "blur(28px)",
           WebkitBackdropFilter: "blur(28px)",
           border: "1px solid rgba(16,185,129,0.18)",
-          borderTop: "none",
-          borderBottomLeftRadius: "1.25rem",
-          borderBottomRightRadius: "1.25rem",
+          borderRadius: "1.25rem",
           boxShadow: "0 8px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(16,185,129,0.06) inset, 0 1px 0 rgba(16,185,129,0.15) inset",
         }}>
           {/* Panel header text */}
@@ -1094,9 +1065,9 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
   };
 
   const cues = [
-    { icon: "👁️", en: "Look around to appreciate the grandeur of nature", ms: "Lihat sekeliling untuk menghayati kebesaran alam" },
-    { icon: "🎚️", en: "Adjust the balance of nature sounds & zikr", ms: "Laras imbangan bunyi alam & zikir" },
-    { icon: "🌬️", en: "Take slow breaths following the visual rhythm", ms: "Ambil nafas perlahan mengikut ritma visual" },
+    { icon: "👁️", ms: "Lihat sekeliling untuk menghayati kebesaran alam", en: "Look around to appreciate the grandeur of nature" },
+    { icon: "🎚️", ms: "Laras imbangan bunyi alam & zikir", en: "Adjust the balance of nature sounds & zikr" },
+    { icon: "🌬️", ms: "Ambil nafas perlahan mengikut ritma visual", en: "Take slow breaths following the visual rhythm" },
   ];
 
   return (
@@ -1107,22 +1078,27 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
       <div className="relative z-10 animate-fade-in text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-3">
           <WaveformIcon bars={16} />
-          <h1 className="font-display text-2xl md:text-3xl text-white">Guided Tadabbur Session</h1>
+          <h1 className="font-display text-2xl md:text-3xl text-white">Sesi Tadabbur Berpandu</h1>
           <WaveformIcon bars={16} />
         </div>
-        <p className="text-slate-400 text-sm">Panduan Sesi Tadabbur</p>
+        <p className="text-slate-400 text-sm">Guided Tadabbur Session</p>
       </div>
 
       {/* Waveform Playback Bar */}
       <div className="relative z-10 animate-fade-in w-full max-w-md mb-6 glass rounded-2xl p-5" style={{ animationDelay: "0.1s" }}>
         {missing ? (
           <div className="flex flex-col items-center gap-2 py-2">
-            <p className="text-red-400 text-xs text-center">Fail audio tidak ditemui —</p>
-            <code className="text-emerald-400 text-xs bg-emerald-400/10 px-2 py-0.5 rounded">stream.mux.com · guided-intro</code>
+            <p className="text-red-400 text-xs text-center">
+              Fail audio tidak dapat dimuatkan
+              <span className="block text-red-400/60 mt-0.5">Audio file could not be loaded</span>
+            </p>
             <button
               onClick={() => { setMissing(false); setReady(true); }}
               className="text-slate-400 text-xs underline mt-1"
-            >Teruskan tanpa audio</button>
+            >
+              Teruskan tanpa audio
+              <span className="block text-slate-500 text-[10px] mt-0.5">Continue without audio</span>
+            </button>
           </div>
         ) : (
           <div className="flex items-center gap-3 mb-3">
@@ -1139,7 +1115,7 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
             </button>
             <div className="flex-1">
               <div className="flex justify-between text-xs text-slate-400 mb-1.5">
-                <span>Voiceover Introduction</span>
+                <span>Pengenalan Voiceover</span>
                 <span>{fmt(elapsed)} / {duration > 0 ? fmt(duration) : "--:--"}</span>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
@@ -1158,7 +1134,12 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
             )}
           </div>
         )}
-        {ready && !missing && <p className="text-emerald-400 text-xs text-center">✓ Audio selesai — anda boleh teruskan</p>}
+        {ready && !missing && (
+          <p className="text-emerald-400 text-xs text-center">
+            ✓ Audio selesai — anda boleh teruskan
+            <span className="block text-emerald-400/60 mt-0.5">Audio complete — you may proceed</span>
+          </p>
+        )}
 
         {/* Skip voiceover button — only shown while audio hasn't completed */}
         {!ready && !missing && (
@@ -1179,7 +1160,7 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
               <polygon points="5,4 15,12 5,20"/><line x1="19" y1="5" x2="19" y2="19"/>
             </svg>
             Langkau Voiceover
-            <span className="opacity-60">· Skip Voiceover</span>
+            <span className="opacity-60">· Skip voiceover</span>
           </button>
         )}
 
@@ -1195,8 +1176,8 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
           >
             <span className="text-2xl flex-shrink-0 mt-0.5">{cue.icon}</span>
             <div>
-              <p className="text-white text-sm font-medium">{cue.en}</p>
-              <p className="text-slate-500 text-xs mt-0.5">{cue.ms}</p>
+              <p className="text-white text-sm font-medium">{cue.ms}</p>
+              <p className="text-slate-500 text-xs mt-0.5">{cue.en}</p>
             </div>
           </div>
         ))}
@@ -1219,9 +1200,9 @@ function GuidedIntroScreen({ onStart }: { onStart: () => void }) {
             transform: ready ? undefined : "none",
           }}
         >
-          {ready ? "Understand & Start Tadabbur ✦" : "Awaiting audio completion…"}
+          {ready ? "Faham & Mula Tadabbur ✦" : "Menunggu audio selesai…"}
           <span className="block text-xs opacity-70 mt-0.5">
-            {ready ? "Faham & Mula Tadabbur" : "Faham & Mula Tadabbur — menunggu audio selesai"}
+            {ready ? "Understand & Start Tadabbur" : "Awaiting audio completion"}
           </span>
         </button>
       </div>
@@ -1319,7 +1300,7 @@ function SessionScreen({
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2">
           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
         </svg>
-        <span className="text-sm text-slate-300">Exit</span>
+        <span className="text-sm text-slate-300">Keluar</span>
       </button>
 
       {/* Breathing Visualizer — top-anchored, compact, non-blocking */}
@@ -1444,14 +1425,14 @@ function SessionScreen({
               className="py-2.5 rounded-xl text-sm font-medium text-emerald-300 transition-all hover:scale-[1.02]"
               style={{ border: "1px solid rgba(16,185,129,0.35)", background: "rgba(16,185,129,0.08)" }}
             >
-              🎵 Change Audio
+              🎵 Tukar Audio
             </button>
             <button
               onClick={onBackToMenu}
               className="py-2.5 rounded-xl text-sm font-medium text-slate-300 transition-all hover:scale-[1.02]"
               style={{ border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)" }}
             >
-              ← Back to Menu
+              ← Kembali ke Menu
             </button>
           </div>
 
@@ -1603,12 +1584,13 @@ function ExitModal({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
         </div>
-        <h3 className="font-display text-xl text-white mb-2">End Session?</h3>
+        <h3 className="font-display text-xl text-white mb-1">Tamat Sesi?</h3>
+        <p className="text-slate-500 text-xs mb-1">End Session?</p>
         <p className="text-slate-300 text-sm leading-relaxed mb-1">
-          End this tadabbur session and return to the main lobby?
+          Tamatkan sesi tadabbur ini dan kembali ke lobi utama?
         </p>
         <p className="text-slate-500 text-xs mb-7">
-          Tamatkan sesi tadabbur ini dan kembali ke lobi utama?
+          End this tadabbur session and return to the main lobby?
         </p>
         <div className="flex flex-col gap-3">
           <button
@@ -1616,16 +1598,16 @@ function ExitModal({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (
             className="w-full py-3.5 rounded-xl font-semibold text-white transition-all hover:scale-[1.02]"
             style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 0 20px rgba(16,185,129,0.3)" }}
           >
-            Continue Here
-            <span className="block text-xs opacity-70 font-normal mt-0.5">Teruskan di Sini</span>
+            Teruskan di Sini
+            <span className="block text-xs opacity-70 font-normal mt-0.5">Continue Here</span>
           </button>
           <button
             onClick={onConfirm}
             className="w-full py-3.5 rounded-xl font-medium text-red-300 transition-all hover:bg-red-900/20"
             style={{ border: "1px solid rgba(239,68,68,0.35)" }}
           >
-            Yes, Return to Lobby
-            <span className="block text-xs opacity-70 mt-0.5">Ya, Kembali ke Lobi</span>
+            Ya, Kembali ke Lobi
+            <span className="block text-xs opacity-70 mt-0.5">Yes, Return to Lobby</span>
           </button>
         </div>
       </div>
@@ -2076,14 +2058,23 @@ function LobbyScreen({ onRestart }: { onRestart: () => void }) {
     <div className="relative min-h-screen star-bg flex flex-col items-center justify-center px-6 text-center overflow-hidden">
       <StarField />
       <div className="relative z-10 animate-fade-in">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-glow"
-          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.2), rgba(16,185,129,0.05))", border: "2px solid rgba(16,185,129,0.5)" }}>
-          <span className="text-4xl">🕌</span>
+        <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-glow"
+          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.15), rgba(5,13,26,0.9))", border: "1.5px solid rgba(16,185,129,0.4)", boxShadow: "0 0 40px rgba(16,185,129,0.2)" }}>
+          <img
+            src="https://res.cloudinary.com/hwiwb3ea/image/upload/v1789437235/logo-tadabburverse.png.png"
+            alt="TadabburVerse"
+            width={72}
+            height={72}
+            style={{ objectFit: "contain" }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
         </div>
-        <h1 className="font-display text-3xl md:text-4xl text-white mb-2">TadabburVerse</h1>
-        <p className="gold-text font-display text-lg mb-2">Main Lobby</p>
-        <p className="text-slate-400 text-sm mb-2">Menu Utama</p>
-        <p className="text-slate-500 text-sm max-w-xs mx-auto mb-10 leading-relaxed">
+        <h1 className="font-display text-3xl md:text-4xl text-white mb-1">TadabburVerse</h1>
+        <p className="gold-text font-display text-base mb-4">Lobi Utama</p>
+        <p className="text-slate-300 text-sm max-w-xs mx-auto mb-1 leading-relaxed">
+          Sesi anda telah tamat. Semoga hati anda menemui ketenangan dalam mengingati-Nya.
+        </p>
+        <p className="text-slate-500 text-xs max-w-xs mx-auto mb-10 leading-relaxed">
           Your session has ended. May your heart find stillness in remembrance.
         </p>
         <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
@@ -2092,8 +2083,8 @@ function LobbyScreen({ onRestart }: { onRestart: () => void }) {
             className="py-4 rounded-2xl font-semibold text-white text-base transition-all hover:scale-[1.02]"
             style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 0 30px rgba(16,185,129,0.4)" }}
           >
-            Begin New Session
-            <span className="block text-xs opacity-70 mt-0.5 font-normal">Mulai Sesi Baru</span>
+            Mulakan Sesi Baru
+            <span className="block text-xs opacity-70 mt-0.5 font-normal">Begin New Session</span>
           </button>
         </div>
       </div>
