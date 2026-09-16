@@ -74,7 +74,7 @@ export default function VRVideoPlayer({
     const video = document.createElement("video");
     video.crossOrigin = "anonymous";
     video.loop = true;
-    video.muted = volume <= 0;
+    video.muted = true; // always start muted so autoplay succeeds
     video.volume = Math.max(0, Math.min(1, volume));
     video.playsInline = true;
     video.preload = "auto";
@@ -214,7 +214,7 @@ export default function VRVideoPlayer({
     };
     renderer.setAnimationLoop(animate);
 
-    // Autoplay when ready
+    // Autoplay when ready — video was started muted; volume useEffect will unmute if needed
     video.play().then(() => setStatus("playing")).catch(() => {});
 
     // ── Cleanup ──────────────────────────────────────────────────────────────
@@ -257,8 +257,9 @@ export default function VRVideoPlayer({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    const v = Math.max(0, Math.min(1, volume));
+    video.volume = v;
     video.muted = volume <= 0;
-    video.volume = Math.max(0, Math.min(1, volume));
   }, [volume]);
 
   return (
